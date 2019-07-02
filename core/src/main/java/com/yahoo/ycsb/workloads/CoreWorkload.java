@@ -520,7 +520,7 @@ public class CoreWorkload extends Workload {
     }
     String value = Long.toString(keynum);
     int fill = zeropadding - value.length();
-    String prekey = "user";
+    String prekey = "";
     for (int i = 0; i < fill; i++) {
       prekey += '0';
     }
@@ -599,6 +599,7 @@ public class CoreWorkload extends Workload {
     int numOfRetries = 0;
     do {
       status = db.insert(table, dbkey, values);
+      System.out.println("insert" + " " + dbkey);
       if (null != status && status.isOk()) {
         break;
       }
@@ -720,7 +721,7 @@ public class CoreWorkload extends Workload {
 
     HashMap<String, ByteIterator> cells = new HashMap<String, ByteIterator>();
     db.read(table, keyname, fields, cells);
-
+    System.out.println("read" + " " + keyname);
     if (dataintegrity) {
       verifyRow(keyname, cells);
     }
@@ -762,7 +763,7 @@ public class CoreWorkload extends Workload {
     db.read(table, keyname, fields, cells);
 
     db.update(table, keyname, values);
-
+    System.out.println("readmodifywrite" + " " + keyname);
     long en = System.nanoTime();
 
     if (dataintegrity) {
@@ -793,6 +794,7 @@ public class CoreWorkload extends Workload {
     }
 
     db.scan(table, startkeyname, len, fields, new Vector<HashMap<String, ByteIterator>>());
+    System.out.println("scan");
   }
 
   public void doTransactionUpdate(DB db) {
@@ -812,6 +814,7 @@ public class CoreWorkload extends Workload {
     }
 
     db.update(table, keyname, values);
+    System.out.println("update" + " " + keyname);
   }
 
   public void doTransactionInsert(DB db) {
@@ -823,6 +826,7 @@ public class CoreWorkload extends Workload {
 
       HashMap<String, ByteIterator> values = buildValues(dbkey);
       db.insert(table, dbkey, values);
+      System.out.println("insert" + " " + dbkey);
     } finally {
       transactioninsertkeysequence.acknowledge(keynum);
     }
