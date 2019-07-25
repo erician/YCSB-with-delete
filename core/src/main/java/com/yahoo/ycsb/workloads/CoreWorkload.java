@@ -598,33 +598,35 @@ public class CoreWorkload extends Workload {
     Status status;
     int numOfRetries = 0;
     do {
-      status = db.insert(table, dbkey, values);
+//      status = db.insert(table, dbkey, values);
       System.out.println("insert" + " " + dbkey);
-      if (null != status && status.isOk()) {
-        break;
-      }
-      // Retry if configured. Without retrying, the load process will fail
-      // even if one single insertion fails. User can optionally configure
-      // an insertion retry limit (default is 0) to enable retry.
-      if (++numOfRetries <= insertionRetryLimit) {
-        System.err.println("Retrying insertion, retry count: " + numOfRetries);
-        try {
-          // Sleep for a random number between [0.8, 1.2)*insertionRetryInterval.
-          int sleepTime = (int) (1000 * insertionRetryInterval * (0.8 + 0.4 * Math.random()));
-          Thread.sleep(sleepTime);
-        } catch (InterruptedException e) {
-          break;
-        }
-
-      } else {
-        System.err.println("Error inserting, not retrying any more. number of attempts: " + numOfRetries +
-            "Insertion Retry Limit: " + insertionRetryLimit);
-        break;
-
-      }
+      break;
+//      if (null != status && status.isOk()) {
+//        break;
+//      }
+//      // Retry if configured. Without retrying, the load process will fail
+//      // even if one single insertion fails. User can optionally configure
+//      // an insertion retry limit (default is 0) to enable retry.
+//      if (++numOfRetries <= insertionRetryLimit) {
+//        System.err.println("Retrying insertion, retry count: " + numOfRetries);
+//        try {
+//          // Sleep for a random number between [0.8, 1.2)*insertionRetryInterval.
+//          int sleepTime = (int) (1000 * insertionRetryInterval * (0.8 + 0.4 * Math.random()));
+//          Thread.sleep(sleepTime);
+//        } catch (InterruptedException e) {
+//          break;
+//        }
+//
+//      } else {
+//        System.err.println("Error inserting, not retrying any more. number of attempts: " + numOfRetries +
+//            "Insertion Retry Limit: " + insertionRetryLimit);
+//        break;
+//
+//      }
     } while (true);
 
-    return null != status && status.isOk();
+//    return null != status && status.isOk();
+    return true;
   }
 
   /**
@@ -720,7 +722,7 @@ public class CoreWorkload extends Workload {
     }
 
     HashMap<String, ByteIterator> cells = new HashMap<String, ByteIterator>();
-    db.read(table, keyname, fields, cells);
+//    db.read(table, keyname, fields, cells);
     System.out.println("read" + " " + keyname);
     if (dataintegrity) {
       verifyRow(keyname, cells);
@@ -760,9 +762,9 @@ public class CoreWorkload extends Workload {
 
     long ist = measurements.getIntendedtartTimeNs();
     long st = System.nanoTime();
-    db.read(table, keyname, fields, cells);
-
-    db.update(table, keyname, values);
+//    db.read(table, keyname, fields, cells);
+//
+//    db.update(table, keyname, values);
     System.out.println("readmodifywrite" + " " + keyname);
     long en = System.nanoTime();
 
@@ -793,7 +795,7 @@ public class CoreWorkload extends Workload {
       fields.add(fieldname);
     }
 
-    db.scan(table, startkeyname, len, fields, new Vector<HashMap<String, ByteIterator>>());
+//    db.scan(table, startkeyname, len, fields, new Vector<HashMap<String, ByteIterator>>());
     System.out.println("scan");
   }
 
@@ -813,7 +815,7 @@ public class CoreWorkload extends Workload {
       values = buildSingleValue(keyname);
     }
 
-    db.update(table, keyname, values);
+//    db.update(table, keyname, values);
     System.out.println("update" + " " + keyname);
   }
 
@@ -825,7 +827,7 @@ public class CoreWorkload extends Workload {
       String dbkey = buildKeyName(keynum);
 
       HashMap<String, ByteIterator> values = buildValues(dbkey);
-      db.insert(table, dbkey, values);
+//      db.insert(table, dbkey, values);
       System.out.println("insert" + " " + dbkey);
     } finally {
       transactioninsertkeysequence.acknowledge(keynum);
