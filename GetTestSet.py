@@ -5,7 +5,7 @@ def get_test_set(argv):
     fout = open(argv[2], 'w')
     line = fin.readline()
     while(line != ''):
-        if(line.startswith("insert") or line.startswith('read')):
+        if(line.startswith("insert") or line.startswith('read')) or line.startswith('delete'):
             fout.write(line)
         line = fin.readline()
 

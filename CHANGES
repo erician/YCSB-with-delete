@@ -1,0 +1,2 @@
+1. 当mvn package失败的时候，一般都是JDK环境没有配置好。
+2. support delete option.

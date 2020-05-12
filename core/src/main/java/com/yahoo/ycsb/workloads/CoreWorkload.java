@@ -41,6 +41,7 @@ import java.util.*;
  * <LI><b>readproportion</b>: what proportion of operations should be reads (default: 0.95)
  * <LI><b>updateproportion</b>: what proportion of operations should be updates (default: 0.05)
  * <LI><b>insertproportion</b>: what proportion of operations should be inserts (default: 0)
+ * <LI><b>deleteproportion</b>: what proportion of operations should be deleted (default: 0)
  * <LI><b>scanproportion</b>: what proportion of operations should be scans (default: 0)
  * <LI><b>readmodifywriteproportion</b>: what proportion of operations should be read a record,
  * modify it, write it back (default: 0)
@@ -216,6 +217,16 @@ public class CoreWorkload extends Workload {
   public static final String INSERT_PROPORTION_PROPERTY_DEFAULT = "0.0";
 
   /**
+   * The name of the property for the proportion of transactions that are deleted.
+   */
+  public static final String DELETE_PROPORTION_PROPERTY = "deleteproportion";
+
+  /**
+   * The default proportion of transactions that are deleted.
+   */
+  public static final String DELETE_PROPORTION_PROPERTY_DEFAULT = "0.0";
+
+  /**
    * The name of the property for the proportion of transactions that are scans.
    */
   public static final String SCAN_PROPORTION_PROPERTY = "scanproportion";
@@ -355,6 +366,8 @@ public class CoreWorkload extends Workload {
   protected int insertionRetryInterval;
 
   private Measurements measurements = Measurements.getMeasurements();
+
+  private HashMap<Long, Boolean> deletedKeyNumMap = new HashMap<>();
 
   protected static NumberGenerator getFieldLengthGenerator(Properties p) throws WorkloadException {
     NumberGenerator fieldlengthgenerator;
@@ -652,6 +665,9 @@ public class CoreWorkload extends Workload {
     case "INSERT":
       doTransactionInsert(db);
       break;
+    case "DELETE":
+      doTransactionDelete(db);
+      break;
     case "SCAN":
       doTransactionScan(db);
       break;
@@ -693,11 +709,12 @@ public class CoreWorkload extends Workload {
     if (keychooser instanceof ExponentialGenerator) {
       do {
         keynum = transactioninsertkeysequence.lastValue() - keychooser.nextValue().intValue();
-      } while (keynum < 0);
+      } while (keynum < 0 || deletedKeyNumMap.containsKey(keynum));
     } else {
       do {
         keynum = keychooser.nextValue().intValue();
-      } while (keynum > transactioninsertkeysequence.lastValue());
+      } while (keynum > transactioninsertkeysequence.lastValue()
+          || deletedKeyNumMap.containsKey(keynum));
     }
     return keynum;
   }
@@ -833,6 +850,15 @@ public class CoreWorkload extends Workload {
       transactioninsertkeysequence.acknowledge(keynum);
     }
   }
+  // after delete, we shouldn't read these deleted keys anymore.
+  public void doTransactionDelete(DB db) {
+    // choose a random key
+    long keynum = nextKeynum();
+    String dbkey = buildKeyName(keynum);
+//  db.delete(table, dbkey);
+    deletedKeyNumMap.put(keynum, true);
+    System.out.println("delete" + " " + dbkey);
+  }
 
   /**
    * Creates a weighted discrete values with database operations for a workload to perform.
@@ -854,6 +880,8 @@ public class CoreWorkload extends Workload {
         p.getProperty(UPDATE_PROPORTION_PROPERTY, UPDATE_PROPORTION_PROPERTY_DEFAULT));
     final double insertproportion = Double.parseDouble(
         p.getProperty(INSERT_PROPORTION_PROPERTY, INSERT_PROPORTION_PROPERTY_DEFAULT));
+    final double deleteproportion = Double.parseDouble(
+        p.getProperty(DELETE_PROPORTION_PROPERTY, DELETE_PROPORTION_PROPERTY_DEFAULT));
     final double scanproportion = Double.parseDouble(
         p.getProperty(SCAN_PROPORTION_PROPERTY, SCAN_PROPORTION_PROPERTY_DEFAULT));
     final double readmodifywriteproportion = Double.parseDouble(p.getProperty(
@@ -870,6 +898,10 @@ public class CoreWorkload extends Workload {
 
     if (insertproportion > 0) {
       operationchooser.addValue(insertproportion, "INSERT");
+    }
+
+    if (deleteproportion > 0) {
+      operationchooser.addValue(deleteproportion, "DELETE");
     }
 
     if (scanproportion > 0) {
